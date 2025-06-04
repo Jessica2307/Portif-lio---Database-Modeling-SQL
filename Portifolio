@@ -1,0 +1,174 @@
+create database db_portifolio;
+use db_portifolio;
+
+create table tbl_curso (
+id  int not null primary key auto_increment,
+nome varchar(100) not null,
+especificacao varchar(50), #bacharelado, técnologo, etc.
+duracao int not null, #em semestre
+unique index (id)
+);
+
+create table tbl_professor (
+id int not null primary key auto_increment,
+nome varchar(100) not null,
+cpf varchar(18) not null,
+especialidade varchar(90),
+email varchar (100) not null,
+
+unique index (id),
+unique (cpf),
+unique (email)
+);
+ 
+
+create table tbl_aluno (
+id int not null primary key auto_increment,
+nome varchar(100) not null,
+cpf varchar(18) not null,
+rg varchar(15) not null,
+email varchar (100),
+data_nascimento date not null,
+matricula varchar(20) not null,
+id_curso int not null,
+
+ constraint FK_curso_aluno
+ foreign key (id_curso)
+ references tbl_curso (id),
+ 
+unique index (id),
+unique (cpf),
+unique (rg),
+unique (matricula),
+unique (email)
+);
+
+
+  
+create table tbl_disciplina (
+id int not null primary key auto_increment,
+nome varchar(100) not null,
+carga_horaria int, #horas
+id_curso int not null, 
+
+ constraint FK_curso_disciplina
+ foreign key (id_curso)
+ references tbl_curso (id),
+ 
+ unique index (id)
+);
+
+
+
+create table tbl_turma (
+id int not null primary key auto_increment,
+nome varchar(45) not null,
+id_disciplina int not null, 
+id_professor int not null, 
+semestre varchar(10),
+ constraint FK_disciplina_turma
+ foreign key (id_disciplina)
+ references tbl_disciplina (id),
+ 
+ constraint FK_professor_turma
+ foreign key (id_professor)
+ references tbl_professor (id),
+ 
+ unique index (id)
+);
+
+
+
+create table tbl_nota (
+id int not null primary key auto_increment,
+nota decimal(4,2) not null,
+id_disciplina int,
+id_aluno int,
+ constraint FK_disciplina_nota
+ foreign key (id_disciplina)
+ references tbl_disciplina (id),
+ 
+ constraint FK_aluno_nota
+ foreign key (id_aluno)
+ references tbl_aluno (id),
+ 
+ unique index (id)
+);
+
+
+
+create table tbl_aluno_turma (
+  id int not null primary key auto_increment,
+  id_aluno int not null,
+  id_turma int not null,
+  constraint FK_aluno_turma 
+  foreign key (id_aluno) 
+  references tbl_aluno(id),
+  
+  constraint FK_turma_aluno 
+  foreign key (id_turma) 
+  references tbl_turma(id),
+  
+ unique index (id)
+);
+
+
+
+#Inserir dados na tabela
+insert into tbl_curso
+  (nome, especificacao, duracao)
+  values
+  ('Engenharia de Computação', 'Bacharelado EAD', '8');
+  
+insert into tbl_professor
+  (nome, cpf, especialidade, email)
+  values
+  ('João da Silva', '123.456.789-10', 'Gestão de Projetos e Banco de Dados', 'joao.silva@outlook.com');
+  
+  insert into tbl_aluno
+  (nome, cpf, rg, email, data_nascimento, matricula, id_curso)
+  values
+  ('Jessica Botelho', '123.456.789-20', '56.852.852-7', 'jessica.botelho@outlook.com', '2001-07-23', '123456', '1');
+  
+  insert into tbl_disciplina
+  (nome, carga_horaria, id_curso)
+  values
+  ('DataBase Modeling & SQL', '60', '1');
+  
+  insert into tbl_turma
+  (nome, id_disciplina, id_professor, semestre)
+  values
+  ('Turma 1 - Eng. da Computação', '1', '1', '2025.1');
+  
+  insert into tbl_nota
+  (nota, id_disciplina, id_aluno)
+  values
+  ('9.5', '1', '1');
+  
+  insert into tbl_aluno_turma
+  (id_aluno, id_turma)
+  values
+  ('1', '1');
+  
+select * from tbl_aluno;
+ 
+#Gerando boletim juntando dados de duas ou mais tabelas
+select tbl_aluno.nome, tbl_nota.nota, tbl_disciplina.nome from tbl_aluno
+inner join tbl_nota on tbl_nota.id_aluno = tbl_aluno.id
+inner join tbl_disciplina on tbl_nota.id_disciplina = tbl_disciplina.id
+
+#Filtrando esta consulta por matrícula
+where tbl_aluno.matricula = '123456';
+
+#Verificar disciplinas por curso
+select tbl_curso.nome, tbl_disciplina.nome from tbl_curso 
+inner join tbl_disciplina on tbl_disciplina.id_curso = tbl_curso.id
+
+where tbl_curso.id = '1';
+
+#Filtrando carga horária e disciplinas por professor
+select tbl_professor.nome, tbl_disciplina.nome, tbl_disciplina.carga_horaria, tbl_turma.nome  from tbl_professor
+inner join tbl_turma on tbl_turma.id_professor = tbl_professor.id
+inner join tbl_disciplina on tbl_turma.id_disciplina = tbl_disciplina.id
+
+where tbl_professor.nome = 'João da Silva';
